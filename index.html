@@ -572,6 +572,7 @@
   const warnBox   = document.getElementById("warnBox");
   const resetBtn  = document.getElementById("resetBtn");
   const constraintsBox = document.getElementById("constraintsBox");
+  const scorePill = document.getElementById("scorePill"); // optional (if you added the id)
 
   // ---- Helpers ----
   function num(v, fallback=0){
@@ -603,15 +604,32 @@
       .replaceAll("'", "&#039;");
   }
 
+  // Map 0..100 to a red->green color (HSL: 0=red, 120=green)
+  function scoreToColor(score01){
+    const clamped = Math.max(0, Math.min(1, score01));
+    const hue = 120 * clamped;         // 0 red -> 120 green
+    const sat = 85;                    // %
+    const light = 45;                  // %
+    return `hsl(${hue} ${sat}% ${light}%)`;
+  }
+
+  function setScoreColors(score){
+    const color = scoreToColor(score / 100);
+    scoreBar.style.background = color;
+    if (scorePill) scorePill.style.background = color;
+  }
+
   // ---- Main compute ----
   function computeScoreAndConstraints() {
     const answered = inputs.filter(sel => sel.value !== "");
     const totalQuestions = inputs.length;
 
+    // Reset UI if nothing answered
     if (answered.length === 0) {
-      scoreText.textContent = "0";
+      scoreText.textContent = "—";
       scoreBar.style.width = "0%";
-      scoreNote.textContent = "Answer all questions to get your final readiness score.";
+      setScoreColors(0);
+      scoreNote.textContent = "Provisional score will appear once you start answering questions.";
       warnBox.style.display = "none";
       constraintsBox.innerHTML = "";
       return;
@@ -621,9 +639,7 @@
     let wSum = 0;
     let wsSum = 0;
 
-    // Aggregate severity by barrier/constraint (guarantees no duplicates)
-    // severity_q = w * (100 - score)
-    // severity_constraint = sum(severity_q for all questions mapped to that constraint)
+    // Aggregate severity by barrier (unique)
     const constraintAgg = new Map();
 
     for (const sel of answered) {
@@ -635,39 +651,45 @@
 
       const severity = w * (100 - s);
 
-      // use barrier label if provided; otherwise fall back to question text
-      const labelRaw = getConstraint(sel) || getQuestionText(sel);
-      const label = labelRaw.trim();
-
+      const label = (getConstraint(sel) || getQuestionText(sel)).trim();
       const prev = constraintAgg.get(label);
       if (!prev) {
-        constraintAgg.set(label, {
-          label,
-          severityTotal: severity,
-          // optional: track which questions contributed (nice for debugging later)
-          questions: [getQuestionText(sel)]
-        });
+        constraintAgg.set(label, { label, severityTotal: severity });
       } else {
         prev.severityTotal += severity;
-        prev.questions.push(getQuestionText(sel));
       }
     }
 
     const readiness = wSum > 0 ? Math.round(wsSum / wSum) : 0;
 
-    scoreText.textContent = String(readiness);
-    scoreBar.style.width = `${readiness}%`;
+    // ----- PROVISIONAL vs FINAL -----
+    const isComplete = answered.length === totalQuestions;
 
-    if (answered.length < totalQuestions) {
-      scoreNote.textContent = `Progress: ${answered.length} / ${totalQuestions} answered (score shown is current weighted average).`;
+    // Always show some number, but clearly labeled as provisional until complete
+    scoreText.textContent = String(readiness);
+    setScoreColors(readiness);
+
+    if (!isComplete) {
+      // progress bar reflects completion progress (not score) to avoid "100/100" confusion
+      const progressPct = Math.round((answered.length / totalQuestions) * 100);
+      scoreBar.style.width = `${progressPct}%`;
+
+      scoreNote.textContent =
+        `Provisional score (based on ${answered.length} / ${totalQuestions} answers). Final score will appear once all questions are completed.`;
       warnBox.style.display = "block";
-    } else {
-      scoreNote.textContent = "All questions answered. Final weighted readiness score shown above.";
-      warnBox.style.display = "none";
+
+      // Hide constraints until complete to avoid misleading “top 5”
+      constraintsBox.innerHTML = "";
+      return;
     }
 
-    // Build top 5 unique constraints by aggregated severity
-    const uniqueConstraints = Array.from(constraintAgg.values())
+    // Complete: show score bar as score and show constraints
+    scoreBar.style.width = `${readiness}%`;
+    scoreNote.textContent = "Final score calculated (all questions answered).";
+    warnBox.style.display = "none";
+
+    // ----- Top 5 unique constraints -----
+    const top5 = Array.from(constraintAgg.values())
       .sort((a, b) => b.severityTotal - a.severityTotal)
       .slice(0, 5);
 
@@ -686,7 +708,7 @@
             </thead>
             <tbody>
               ${
-                uniqueConstraints.map((item, idx) => `
+                top5.map((item, idx) => `
                   <tr>
                     <td style="padding:8px 6px;font-weight:900;">${idx + 1}</td>
                     <td style="padding:8px 6px;">${escapeHtml(item.label)}</td>
@@ -696,7 +718,6 @@
             </tbody>
           </table>
           <div style="color:#444;font-size:13px;margin-top:6px;">
-            Severity is aggregated per constraint: Σ[weight × (100 − score)] across all linked questions.
           </div>
         </div>
       </div>
