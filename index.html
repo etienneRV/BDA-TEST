@@ -21,7 +21,26 @@
       line-height: 1.45;
     }
     h1{ margin: 0 0 8px; }
-    p{ margin: 0 0 18px; color: var(--muted); }
+    p{ margin: 0 0 14px; color: var(--muted); }
+
+    .intro{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 12px;
+      margin-bottom: 18px;
+    }
+    .intro h2{
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .intro ul{
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .intro li{ margin: 6px 0; }
+    .intro .small{ font-size: 14px; margin-top: 10px; color: var(--muted); }
 
     .category{
       margin: 18px 0;
@@ -128,7 +147,32 @@
 </head>
 <body>
 
-<h1>BDA Readiness Assessment Tool</h1>
+<h1>Big Data Analytics (BDA) Capabilities Assessment Tool</h1>
+
+<div class="intro">
+  <h2>Welcome</h2>
+  <p>
+    This tool helps organizations assess readiness to implement Big Data Analytics (BDA) effectively.
+    It is informed by the research paper <em>“Exploring the Key Barriers to Big Data Analytics in Europe’s FMCG Sector”</em>,
+    which identifies and ranks barriers to BDA adoption in the European FMCG sector.
+  </p>
+  <p class="small">
+    <strong>How to use:</strong> Complete this collaboratively across departments for the most accurate results.
+  </p>
+  <ul>
+    <li><strong>Technology:</strong> IT Department</li>
+    <li><strong>Skills:</strong> HR and Data Teams</li>
+    <li><strong>Data Quality & Management:</strong> Data Specialists and Process Owners</li>
+    <li><strong>Economic / Investment:</strong> Finance and Business Strategy Teams</li>
+    <li><strong>Organizational Culture:</strong> Senior Management</li>
+    <li><strong>Governance & Compliance:</strong> Legal and Compliance Teams</li>
+    <li><strong>Collaboration:</strong> Supply Chain Team</li>
+  </ul>
+  <p class="small">
+    Answer each question carefully. The score at the bottom provides an overall BDA readiness indication to guide improvement areas.
+  </p>
+</div>
+
 <p>Select an answer for each question. Your <strong>BDA Readiness Score</strong> is calculated automatically at the bottom.</p>
 
 <form id="bdaForm">
@@ -163,7 +207,6 @@
       <div class="text">How often do you face downtime or performance issues related to infrastructure?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- 5-point scale (best → worst) -->
         <option value="100">Never</option>
         <option value="75">Rarely</option>
         <option value="50">Sometimes</option>
@@ -176,7 +219,6 @@
       <div class="text">Is your IT infrastructure generally sufficient to support your digital initiatives?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- 5-point scale (best → worst) -->
         <option value="100">Always</option>
         <option value="75">Mostly</option>
         <option value="50">Sometimes</option>
@@ -216,7 +258,6 @@
       <div class="text">Do you face challenges in recruiting or retaining skilled data professionals?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- 5-point scale (best → worst) -->
         <option value="100">No challenges</option>
         <option value="75">Minor challenges</option>
         <option value="50">Moderate challenges</option>
@@ -240,7 +281,6 @@
       <div class="text">How many employees are proficient in data analysis (machine learning, AI, other big data tools)?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- 5-point scale (best → worst) -->
         <option value="100">Most</option>
         <option value="75">Many</option>
         <option value="50">Some</option>
@@ -253,7 +293,6 @@
       <div class="text">How many employees are proficient in data engineering (ETL processes, data cleaning, etc)?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- 5-point scale (best → worst) -->
         <option value="100">Most</option>
         <option value="75">Many</option>
         <option value="50">Sufficient</option>
@@ -294,7 +333,6 @@
       <div class="text">How many independent data storage systems are used across departments?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- fewer systems = better -->
         <option value="100">A Single One</option>
         <option value="75">A Few</option>
         <option value="25">Many</option>
@@ -328,7 +366,6 @@
       <div class="text">How much manual intervention is required for data consolidation?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- less manual = better -->
         <option value="100">None</option>
         <option value="75">Limited</option>
         <option value="50">Moderate</option>
@@ -426,7 +463,6 @@
       <div class="text">Are departments reluctant to share data due to competing objectives or priorities?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- less reluctance = better -->
         <option value="100">Never</option>
         <option value="75">Rarely</option>
         <option value="50">Occasionally</option>
@@ -449,7 +485,6 @@
       <div class="text">Are there stakeholders within your organization prioritize projects for their prestige rather than strategic value?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- fewer prestige-driven stakeholders = better -->
         <option value="100">None</option>
         <option value="75">A Few</option>
         <option value="50">Some</option>
@@ -462,7 +497,6 @@
       <div class="text">Does your organization face challenges due to union opposition when implementing new technologies?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- less opposition = better -->
         <option value="100">No</option>
         <option value="50">Occasionally</option>
         <option value="0">Yes</option>
@@ -489,7 +523,6 @@
       <div class="text">Are there specific regulatory requirements that limit data collection, storage, or processing?</div>
       <select class="score-input" required>
         <option value="">Select…</option>
-        <!-- fewer limits = better for readiness in this simple scoring -->
         <option value="100">No</option>
         <option value="0">Yes</option>
         <option value="50">Not Sure</option>
@@ -515,7 +548,6 @@
 
 </form>
 
-<!-- SCORE -->
 <section class="scoreBox" id="scoreBox">
   <div class="scoreTop">
     <h2>BDA Readiness Score</h2>
@@ -546,7 +578,6 @@
   const resetBtn  = document.getElementById("resetBtn");
 
   function computeScore() {
-    // only compute from answered questions
     const answered = inputs.filter(sel => sel.value !== "");
     const totalQuestions = inputs.length;
 
@@ -558,11 +589,10 @@
       return;
     }
 
-    // average of selected numeric values (0..100)
     const sum = answered.reduce((acc, sel) => acc + Number(sel.value), 0);
     const avg = sum / answered.length;
-
     const rounded = Math.round(avg);
+
     scoreText.textContent = String(rounded);
     scoreBar.style.width = `${rounded}%`;
 
@@ -575,17 +605,14 @@
     }
   }
 
-  // Update score whenever a dropdown changes
   inputs.forEach(sel => sel.addEventListener("change", computeScore));
 
-  // Reset
   resetBtn.addEventListener("click", () => {
     inputs.forEach(sel => sel.value = "");
     computeScore();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  // initial
   computeScore();
 </script>
 
