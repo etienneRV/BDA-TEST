@@ -562,17 +562,14 @@
   <div class="controls">
     <button type="button" id="resetBtn">Reset all answers</button>
   </div>
-</section>
-
 <script>
   const inputs = Array.from(document.querySelectorAll(".score-input"));
-  const scoreText = document.getElementById("scoreText");
   const scoreBar  = document.getElementById("scoreBar");
   const scoreNote = document.getElementById("scoreNote");
   const warnBox   = document.getElementById("warnBox");
   const resetBtn  = document.getElementById("resetBtn");
   const constraintsBox = document.getElementById("constraintsBox");
-  const scorePill = document.getElementById("scorePill"); // you already have this
+  const scorePill = document.getElementById("scorePill"); // you have this
 
   // ---- Helpers ----
   function num(v, fallback=0){
@@ -604,12 +601,14 @@
       .replaceAll("'", "&#039;");
   }
 
-  // 0..100 -> dark red .. green
+  // 0..100 -> dark red .. yellow(≈50) .. green
+  // HSL hue: 0=red, 60=yellow, 120=green
   function scoreToColor(score){
     const s = Math.max(0, Math.min(100, Number(score)));
-    const hue = 120 * (s / 100);        // 0 red -> 120 green
-    const light = 36 + (s / 100) * 12;  // 36%..48%
-    return `hsl(${hue} 85% ${light}%)`;
+    const hue = 120 * (s / 100);     // 0 red -> 60 yellow -> 120 green
+    const sat = 90;                   // strong but clean
+    const light = 42;                 // “dark-ish red” and readable yellow/green
+    return `hsl(${hue} ${sat}% ${light}%)`;
   }
 
   function setFinalColors(readiness){
@@ -619,7 +618,7 @@
   }
 
   function setProgressColors(){
-    // keep in brand/design yellow while incomplete
+    // brand/design yellow while incomplete
     scoreBar.style.background = "linear-gradient(90deg, #f4b400, #ffd56a)";
     if (scorePill) scorePill.style.background = "#f4b400";
   }
@@ -629,9 +628,9 @@
     const totalQuestions = inputs.length;
     const isComplete = answered.length === totalQuestions;
 
-    // Nothing answered -> show empty progress state
+    // Nothing answered -> N/A + 0% progress
     if (answered.length === 0) {
-      if (scoreText) scoreText.textContent = "Progress";
+      if (scorePill) scorePill.textContent = "N/A";
       scoreBar.style.width = "0%";
       setProgressColors();
       scoreNote.textContent = `Progress (0 / ${totalQuestions} Questions answered).`;
@@ -665,16 +664,12 @@
     const readiness = wSum > 0 ? Math.round(wsSum / wSum) : 0;
 
     // -------------------------
-    // INCOMPLETE: show PROGRESS ONLY (no x/100 shown)
+    // INCOMPLETE: pill shows N/A; bar shows progress in yellow
     // -------------------------
     if (!isComplete) {
       const progressPct = Math.round((answered.length / totalQuestions) * 100);
 
-      // Replace pill content so it DOES NOT show "/100"
-      // Your HTML currently has <span id="scoreText">—</span>/100
-      // We overwrite the whole pill to show just "Progress"
-      if (scorePill) scorePill.textContent = "Progress";
-
+      if (scorePill) scorePill.textContent = "N/A";
       scoreBar.style.width = `${progressPct}%`;
       setProgressColors();
 
@@ -682,19 +677,14 @@
         `Progress (${answered.length} / ${totalQuestions} Questions answered). Final score will appear once all questions are completed.`;
       warnBox.style.display = "block";
 
-      // Hide constraints until complete
       constraintsBox.innerHTML = "";
       return;
     }
 
     // -------------------------
-    // COMPLETE: show FINAL SCORE out of 100
+    // COMPLETE: pill shows score/100; bar shows score + red→yellow→green
     // -------------------------
-    if (scorePill) {
-      scorePill.innerHTML = `<span id="scoreText">${readiness}</span>/100`;
-    } else if (scoreText) {
-      scoreText.textContent = String(readiness);
-    }
+    if (scorePill) scorePill.innerHTML = `${readiness}/100`;
 
     scoreBar.style.width = `${readiness}%`;
     setFinalColors(readiness);
