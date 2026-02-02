@@ -3,113 +3,591 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>BDA Readiness Assessment Tool – Questions</title>
+  <title>BDA Readiness Assessment Tool</title>
   <style>
+    :root{
+      --accent:#f4b400;
+      --border:#e6e6e6;
+      --text:#111;
+      --muted:#444;
+      --card:#fff;
+      --bg:#fafafa;
+    }
     body{
       font-family: Arial, Helvetica, sans-serif;
-      margin: 32px;
-      line-height: 1.5;
-      color: #111;
+      margin: 28px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
     }
-    h1{
-      margin-bottom: 8px;
-    }
+    h1{ margin: 0 0 8px; }
+    p{ margin: 0 0 18px; color: var(--muted); }
+
     .category{
-      margin-top: 28px;
+      margin: 18px 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card);
     }
     .category h2{
-      background: #f4b400;
-      padding: 10px 12px;
-      margin: 0 0 12px 0;
-      font-size: 20px;
-    }
-    ol{
       margin: 0;
-      padding-left: 22px;
-    }
-    li{
-      margin: 10px 0;
+      background: var(--accent);
+      padding: 10px 12px;
       font-size: 18px;
-      font-weight: 600;
+      letter-spacing: .2px;
+    }
+
+    .q{
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 14px;
+      padding: 14px 12px;
+      border-top: 1px solid var(--border);
+      align-items: center;
+    }
+    .q:first-of-type{ border-top:none; }
+
+    .q .text{
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    select{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+    select:focus{
+      border-color:#c9c9c9;
+      box-shadow: 0 0 0 3px rgba(244,180,0,.20);
+    }
+
+    .scoreBox{
+      margin-top: 22px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 12px;
+    }
+    .scoreTop{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .scoreTop h2{ margin:0; font-size: 18px; }
+    .pill{
+      background: var(--accent);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+    }
+    .small{ color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .bar{
+      margin-top: 10px;
+      height: 12px;
+      background: #eee;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #ffd56a);
+      transition: width .25s ease;
+    }
+    .controls{
+      margin-top: 10px;
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    button{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      font-weight: 800;
+      cursor:pointer;
+    }
+    button:hover{ filter: brightness(.98); }
+    .warn{
+      margin-top: 10px;
+      color: #b00020;
+      font-weight: 800;
+      display:none;
     }
   </style>
 </head>
 <body>
 
-  <h1>BDA Readiness Assessment Tool</h1>
-  <p><strong>Instructions:</strong> Answer each question in the categories below.</p>
+<h1>BDA Readiness Assessment Tool</h1>
+<p>Select an answer for each question. Your <strong>BDA Readiness Score</strong> is calculated automatically at the bottom.</p>
 
-  <div class="category">
+<form id="bdaForm">
+
+  <!-- TECHNOLOGY -->
+  <section class="category">
     <h2>Technology</h2>
-    <ol>
-      <li>Are there sufficient data storage capabilities to handle increasing data volumes?</li>
-      <li>Can your infrastructure process large datasets in real-time or near real-time?</li>
-      <li>How often do you face downtime or performance issues related to infrastructure?</li>
-      <li>Is your IT infrastructure generally sufficient to support your digital initiatives?</li>
-      <li>Are data transfers between legacy systems and newer systems automated?</li>
-      <li>Are legacy systems fully compatible with modern data platforms and software?</li>
-    </ol>
-  </div>
 
-  <div class="category">
+    <div class="q">
+      <div class="text">Are there sufficient data storage capabilities to handle increasing data volumes?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Can your infrastructure process large datasets in real-time or near real-time?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How often do you face downtime or performance issues related to infrastructure?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- 5-point scale (best → worst) -->
+        <option value="100">Never</option>
+        <option value="75">Rarely</option>
+        <option value="50">Sometimes</option>
+        <option value="25">Often</option>
+        <option value="0">Very Often</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Is your IT infrastructure generally sufficient to support your digital initiatives?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- 5-point scale (best → worst) -->
+        <option value="100">Always</option>
+        <option value="75">Mostly</option>
+        <option value="50">Sometimes</option>
+        <option value="25">Rarely</option>
+        <option value="0">Never</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are data transfers between legacy systems and newer systems automated?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are legacy systems fully compatible with modern data platforms and software?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="category">
     <h2>Skills</h2>
-    <ol>
-      <li>Do you face challenges in recruiting or retaining skilled data professionals?</li>
-      <li>Are there ongoing training programs to develop data-related skills among staff?</li>
-      <li>How many employees are proficient in data analysis (machine learning, AI, other big data tools)?</li>
-      <li>How many employees are proficient in data engineering (ETL processes, data cleaning, etc)?</li>
-    </ol>
-  </div>
 
-  <div class="category">
+    <div class="q">
+      <div class="text">Do you face challenges in recruiting or retaining skilled data professionals?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- 5-point scale (best → worst) -->
+        <option value="100">No challenges</option>
+        <option value="75">Minor challenges</option>
+        <option value="50">Moderate challenges</option>
+        <option value="25">Major challenges</option>
+        <option value="0">Severe challenges</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there ongoing training programs to develop data-related skills among staff?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Planned</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How many employees are proficient in data analysis (machine learning, AI, other big data tools)?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- 5-point scale (best → worst) -->
+        <option value="100">Most</option>
+        <option value="75">Many</option>
+        <option value="50">Some</option>
+        <option value="25">A Few</option>
+        <option value="0">None</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How many employees are proficient in data engineering (ETL processes, data cleaning, etc)?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- 5-point scale (best → worst) -->
+        <option value="100">Most</option>
+        <option value="75">Many</option>
+        <option value="50">Sufficient</option>
+        <option value="25">A Few</option>
+        <option value="0">None</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section class="category">
     <h2>Data</h2>
-    <ol>
-      <li>How frequently do you encounter data errors, inconsistencies, or missing values?</li>
-      <li>Are there standard data quality checks or procedures in place?</li>
-      <li>How many independent data storage systems are used across departments?</li>
-      <li>Are there initiatives to unify or integrate data systems?</li>
-      <li>Are data extraction, transformation, and loading (ETL) processes automated?</li>
-      <li>How much manual intervention is required for data consolidation?</li>
-      <li>Are metadata (e.g., data source, timestamp, data owner) consistently maintained?</li>
-    </ol>
-  </div>
 
-  <div class="category">
+    <div class="q">
+      <div class="text">How frequently do you encounter data errors, inconsistencies, or missing values?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Never</option>
+        <option value="75">Rarely</option>
+        <option value="50">Sometimes</option>
+        <option value="25">Often</option>
+        <option value="0">Very Often</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there standard data quality checks or procedures in place?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How many independent data storage systems are used across departments?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- fewer systems = better -->
+        <option value="100">A Single One</option>
+        <option value="75">A Few</option>
+        <option value="25">Many</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there initiatives to unify or integrate data systems?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="75">Planned</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are data extraction, transformation, and loading (ETL) processes automated?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How much manual intervention is required for data consolidation?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- less manual = better -->
+        <option value="100">None</option>
+        <option value="75">Limited</option>
+        <option value="50">Moderate</option>
+        <option value="0">Extensive</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are metadata (e.g., data source, timestamp, data owner) consistently maintained?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Consistently</option>
+        <option value="75">Mostly</option>
+        <option value="50">Sometimes</option>
+        <option value="25">Rarely</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- INVESTMENT -->
+  <section class="category">
     <h2>Investment</h2>
-    <ol>
-      <li>Have you identified specific cost savings, revenue increases, or efficiency improvements from BDA projects?</li>
-      <li>Are BDA projects monitored for ROI at regular intervals?</li>
-      <li>How clear are the business objectives linked to BDA projects?</li>
-    </ol>
-  </div>
 
-  <div class="category">
+    <div class="q">
+      <div class="text">Have you identified specific cost savings, revenue increases, or efficiency improvements from BDA projects?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are BDA projects monitored for ROI at regular intervals?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">How clear are the business objectives linked to BDA projects?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Very Clear</option>
+        <option value="75">Mostly Clear</option>
+        <option value="50">Somewhat Clear</option>
+        <option value="0">Unclear</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- CULTURE -->
+  <section class="category">
     <h2>Culture</h2>
-    <ol>
-      <li>Have senior executives committed to support the BDA project?</li>
-      <li>Are employees and departments generally receptive to adopting new technologies?</li>
-      <li>Are change management strategies (e.g., training, communication) in place to reduce resistance?</li>
-      <li>Are departments reluctant to share data due to competing objectives or priorities?</li>
-      <li>Are there clear policies and incentives to encourage cross-departmental collaboration?</li>
-      <li>Are there stakeholders within your organization prioritize projects for their prestige rather than strategic value?</li>
-      <li>Does your organization face challenges due to union opposition when implementing new technologies?</li>
-    </ol>
-  </div>
 
-  <div class="category">
+    <div class="q">
+      <div class="text">Have senior executives committed to support the BDA project?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are employees and departments generally receptive to adopting new technologies?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Highly Receptive</option>
+        <option value="75">Moderately Receptive</option>
+        <option value="50">Mixed</option>
+        <option value="0">Resistant</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are change management strategies (e.g., training, communication) in place to reduce resistance?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are departments reluctant to share data due to competing objectives or priorities?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- less reluctance = better -->
+        <option value="100">Never</option>
+        <option value="75">Rarely</option>
+        <option value="50">Occasionally</option>
+        <option value="0">Often</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there clear policies and incentives to encourage cross-departmental collaboration?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Partially</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there stakeholders within your organization prioritize projects for their prestige rather than strategic value?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- fewer prestige-driven stakeholders = better -->
+        <option value="100">None</option>
+        <option value="75">A Few</option>
+        <option value="50">Some</option>
+        <option value="0">Many</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Does your organization face challenges due to union opposition when implementing new technologies?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- less opposition = better -->
+        <option value="100">No</option>
+        <option value="50">Occasionally</option>
+        <option value="0">Yes</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- GOVERNANCE -->
+  <section class="category">
     <h2>Governance</h2>
-    <ol>
-      <li>Does your organization have compliance officers or legal teams focused on data protection?</li>
-      <li>Are there specific regulatory requirements that limit data collection, storage, or processing?</li>
-    </ol>
+
+    <div class="q">
+      <div class="text">Does your organization have compliance officers or legal teams focused on data protection?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="100">Yes</option>
+        <option value="0">No</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+
+    <div class="q">
+      <div class="text">Are there specific regulatory requirements that limit data collection, storage, or processing?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <!-- fewer limits = better for readiness in this simple scoring -->
+        <option value="100">No</option>
+        <option value="0">Yes</option>
+        <option value="50">Not Sure</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- COLLABORATION -->
+  <section class="category">
+    <h2>Collaboration</h2>
+
+    <div class="q">
+      <div class="text">Are you collaborating with other stakeholders (e.g. vendors, customers, etc) to optimise operations?</div>
+      <select class="score-input" required>
+        <option value="">Select…</option>
+        <option value="0">Never</option>
+        <option value="50">Occasionally</option>
+        <option value="75">Often</option>
+        <option value="100">Consistently</option>
+      </select>
+    </div>
+  </section>
+
+</form>
+
+<!-- SCORE -->
+<section class="scoreBox" id="scoreBox">
+  <div class="scoreTop">
+    <h2>BDA Readiness Score</h2>
+    <div class="pill"><span id="scoreText">0</span>/100</div>
   </div>
 
-  <div class="category">
-    <h2>Collaboration</h2>
-    <ol>
-      <li>Are you collaborating with other stakeholders (e.g. vendors, customers, etc) to optimise operations?</li>
-    </ol>
+  <div class="bar" aria-label="Readiness score bar">
+    <div id="scoreBar"></div>
   </div>
+
+  <div class="small" id="scoreNote">
+    Answer all questions to get your final readiness score.
+  </div>
+
+  <div class="warn" id="warnBox">Please answer all questions to calculate the final score.</div>
+
+  <div class="controls">
+    <button type="button" id="resetBtn">Reset all answers</button>
+  </div>
+</section>
+
+<script>
+  const inputs = Array.from(document.querySelectorAll(".score-input"));
+  const scoreText = document.getElementById("scoreText");
+  const scoreBar  = document.getElementById("scoreBar");
+  const scoreNote = document.getElementById("scoreNote");
+  const warnBox   = document.getElementById("warnBox");
+  const resetBtn  = document.getElementById("resetBtn");
+
+  function computeScore() {
+    // only compute from answered questions
+    const answered = inputs.filter(sel => sel.value !== "");
+    const totalQuestions = inputs.length;
+
+    if (answered.length === 0) {
+      scoreText.textContent = "0";
+      scoreBar.style.width = "0%";
+      scoreNote.textContent = "Answer all questions to get your final readiness score.";
+      warnBox.style.display = "none";
+      return;
+    }
+
+    // average of selected numeric values (0..100)
+    const sum = answered.reduce((acc, sel) => acc + Number(sel.value), 0);
+    const avg = sum / answered.length;
+
+    const rounded = Math.round(avg);
+    scoreText.textContent = String(rounded);
+    scoreBar.style.width = `${rounded}%`;
+
+    if (answered.length < totalQuestions) {
+      scoreNote.textContent = `Progress: ${answered.length} / ${totalQuestions} answered (score shown is current average).`;
+      warnBox.style.display = "block";
+    } else {
+      scoreNote.textContent = "All questions answered. Final readiness score shown above.";
+      warnBox.style.display = "none";
+    }
+  }
+
+  // Update score whenever a dropdown changes
+  inputs.forEach(sel => sel.addEventListener("change", computeScore));
+
+  // Reset
+  resetBtn.addEventListener("click", () => {
+    inputs.forEach(sel => sel.value = "");
+    computeScore();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // initial
+  computeScore();
+</script>
 
 </body>
 </html>
