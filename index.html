@@ -580,23 +580,27 @@
   }
 
   function getWeight(el){
-    // default weight = 1 if missing or placeholder not edited
     const raw = (el.dataset.weight || "").trim();
-    if (!raw || raw === "__WEIGHT__") return 1;
-    return num(raw, 1);
+    return raw ? num(raw, 1) : 1;
   }
 
   function getConstraint(el){
-    // constraint label (for table)
-    const raw = (el.dataset.constraint || "").trim();
-    if (!raw || raw === "__CONSTRAINT__") return "";
-    return raw;
+    return (el.dataset.constraint || "").trim();
   }
 
   function getQuestionText(selectEl){
     const q = selectEl.closest(".q");
     const t = q ? q.querySelector(".text") : null;
     return t ? t.textContent.trim() : "Question";
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
   // ---- Main compute ----
@@ -617,9 +621,10 @@
     let wSum = 0;
     let wsSum = 0;
 
-    // severity list (top 5)
-    // severity = w * (100 - score)
-    const severities = [];
+    // Aggregate severity by barrier/constraint (guarantees no duplicates)
+    // severity_q = w * (100 - score)
+    // severity_constraint = sum(severity_q for all questions mapped to that constraint)
+    const constraintAgg = new Map();
 
     for (const sel of answered) {
       const w = getWeight(sel);
@@ -629,9 +634,23 @@
       wsSum += w * s;
 
       const severity = w * (100 - s);
-      const label = getConstraint(sel) || getQuestionText(sel);
 
-      severities.push({ label, severity });
+      // use barrier label if provided; otherwise fall back to question text
+      const labelRaw = getConstraint(sel) || getQuestionText(sel);
+      const label = labelRaw.trim();
+
+      const prev = constraintAgg.get(label);
+      if (!prev) {
+        constraintAgg.set(label, {
+          label,
+          severityTotal: severity,
+          // optional: track which questions contributed (nice for debugging later)
+          questions: [getQuestionText(sel)]
+        });
+      } else {
+        prev.severityTotal += severity;
+        prev.questions.push(getQuestionText(sel));
+      }
     }
 
     const readiness = wSum > 0 ? Math.round(wsSum / wSum) : 0;
@@ -647,9 +666,10 @@
       warnBox.style.display = "none";
     }
 
-    // Top 5 constraints
-    severities.sort((a, b) => b.severity - a.severity);
-    const top5 = severities.slice(0, 5);
+    // Build top 5 unique constraints by aggregated severity
+    const uniqueConstraints = Array.from(constraintAgg.values())
+      .sort((a, b) => b.severityTotal - a.severityTotal)
+      .slice(0, 5);
 
     constraintsBox.innerHTML = `
       <div style="border:1px solid #e6e6e6;border-radius:12px;overflow:hidden;background:#fff;">
@@ -666,7 +686,7 @@
             </thead>
             <tbody>
               ${
-                top5.map((item, idx) => `
+                uniqueConstraints.map((item, idx) => `
                   <tr>
                     <td style="padding:8px 6px;font-weight:900;">${idx + 1}</td>
                     <td style="padding:8px 6px;">${escapeHtml(item.label)}</td>
@@ -676,20 +696,11 @@
             </tbody>
           </table>
           <div style="color:#444;font-size:13px;margin-top:6px;">
-            Severity = weight × (100 − score). Edit <code>data-weight</code> and <code>data-constraint</code> in each question.
+            Severity is aggregated per constraint: Σ[weight × (100 − score)] across all linked questions.
           </div>
         </div>
       </div>
     `;
-  }
-
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
   }
 
   inputs.forEach(sel => sel.addEventListener("change", computeScoreAndConstraints));
@@ -702,6 +713,3 @@
 
   computeScoreAndConstraints();
 </script>
-
-</body>
-</html>
