@@ -572,7 +572,7 @@
   const warnBox   = document.getElementById("warnBox");
   const resetBtn  = document.getElementById("resetBtn");
   const constraintsBox = document.getElementById("constraintsBox");
-  const scorePill = document.getElementById("scorePill"); // optional (only works if you added id="scorePill")
+  const scorePill = document.getElementById("scorePill"); // you already have this
 
   // ---- Helpers ----
   function num(v, fallback=0){
@@ -607,10 +607,8 @@
   // 0..100 -> dark red .. green
   function scoreToColor(score){
     const s = Math.max(0, Math.min(100, Number(score)));
-    // hue 0 (red) -> 120 (green)
-    const hue = 120 * (s / 100);
-    // darker at low end, slightly brighter mid/high
-    const light = 38 + (s / 100) * 10; // 38%..48%
+    const hue = 120 * (s / 100);        // 0 red -> 120 green
+    const light = 36 + (s / 100) * 12;  // 36%..48%
     return `hsl(${hue} 85% ${light}%)`;
   }
 
@@ -620,7 +618,7 @@
     if (scorePill) scorePill.style.background = c;
   }
 
-  function setProvisionalColors(){
+  function setProgressColors(){
     // keep in brand/design yellow while incomplete
     scoreBar.style.background = "linear-gradient(90deg, #f4b400, #ffd56a)";
     if (scorePill) scorePill.style.background = "#f4b400";
@@ -629,13 +627,14 @@
   function computeScoreAndConstraints() {
     const answered = inputs.filter(sel => sel.value !== "");
     const totalQuestions = inputs.length;
+    const isComplete = answered.length === totalQuestions;
 
-    // If nothing answered, reset UI
+    // Nothing answered -> show empty progress state
     if (answered.length === 0) {
-      scoreText.textContent = "—";
+      if (scoreText) scoreText.textContent = "Progress";
       scoreBar.style.width = "0%";
-      setProvisionalColors();
-      scoreNote.textContent = "Provisional score will appear once you start answering questions.";
+      setProgressColors();
+      scoreNote.textContent = `Progress (0 / ${totalQuestions} Questions answered).`;
       warnBox.style.display = "none";
       constraintsBox.innerHTML = "";
       return;
@@ -664,31 +663,39 @@
     }
 
     const readiness = wSum > 0 ? Math.round(wsSum / wSum) : 0;
-    const isComplete = answered.length === totalQuestions;
 
-    // Always show the numeric score, but clearly label it as provisional until complete
-    scoreText.textContent = String(readiness);
-
+    // -------------------------
+    // INCOMPLETE: show PROGRESS ONLY (no x/100 shown)
+    // -------------------------
     if (!isComplete) {
-      // PROVISIONAL MODE:
-      // - bar shows completion progress
-      // - bar color stays yellow (brand), not red/green
       const progressPct = Math.round((answered.length / totalQuestions) * 100);
+
+      // Replace pill content so it DOES NOT show "/100"
+      // Your HTML currently has <span id="scoreText">—</span>/100
+      // We overwrite the whole pill to show just "Progress"
+      if (scorePill) scorePill.textContent = "Progress";
+
       scoreBar.style.width = `${progressPct}%`;
-      setProvisionalColors();
+      setProgressColors();
 
       scoreNote.textContent =
         `Progress (${answered.length} / ${totalQuestions} Questions answered). Final score will appear once all questions are completed.`;
       warnBox.style.display = "block";
 
-      // Hide constraints until complete to avoid misleading results
+      // Hide constraints until complete
       constraintsBox.innerHTML = "";
       return;
     }
 
-    // FINAL MODE:
-    // - bar shows the score
-    // - bar + pill become red->green based on score
+    // -------------------------
+    // COMPLETE: show FINAL SCORE out of 100
+    // -------------------------
+    if (scorePill) {
+      scorePill.innerHTML = `<span id="scoreText">${readiness}</span>/100`;
+    } else if (scoreText) {
+      scoreText.textContent = String(readiness);
+    }
+
     scoreBar.style.width = `${readiness}%`;
     setFinalColors(readiness);
 
@@ -703,7 +710,7 @@
     constraintsBox.innerHTML = `
       <div style="border:1px solid #e6e6e6;border-radius:12px;overflow:hidden;background:#fff;">
         <div style="background:#8fd0f0;padding:10px 12px;font-weight:900;">
-          Top 5 (Weightec) Constraints
+          Top 5 (Weighted) Constraints
         </div>
         <div style="padding:10px 12px;">
           <table style="width:100%;border-collapse:collapse;">
