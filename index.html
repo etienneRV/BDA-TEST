@@ -543,7 +543,7 @@
 <section class="scoreBox" id="scoreBox">
   <div class="scoreTop">
     <h2>BDA Readiness Score</h2>
-    <div class="pill"><span id="scoreText">0</span>/100</div>
+    <div class="pill" id="scorePill"><span id="scoreText">—</span>/100</div>
   </div>
 
   <div class="bar" aria-label="Readiness score bar">
@@ -572,7 +572,7 @@
   const warnBox   = document.getElementById("warnBox");
   const resetBtn  = document.getElementById("resetBtn");
   const constraintsBox = document.getElementById("constraintsBox");
-  const scorePill = document.getElementById("scorePill"); // optional (if you added the id)
+  const scorePill = document.getElementById("scorePill"); // optional (only works if you added id="scorePill")
 
   // ---- Helpers ----
   function num(v, fallback=0){
@@ -604,31 +604,37 @@
       .replaceAll("'", "&#039;");
   }
 
-  // Map 0..100 to a red->green color (HSL: 0=red, 120=green)
-  function scoreToColor(score01){
-    const clamped = Math.max(0, Math.min(1, score01));
-    const hue = 120 * clamped;         // 0 red -> 120 green
-    const sat = 85;                    // %
-    const light = 45;                  // %
-    return `hsl(${hue} ${sat}% ${light}%)`;
+  // 0..100 -> dark red .. green
+  function scoreToColor(score){
+    const s = Math.max(0, Math.min(100, Number(score)));
+    // hue 0 (red) -> 120 (green)
+    const hue = 120 * (s / 100);
+    // darker at low end, slightly brighter mid/high
+    const light = 38 + (s / 100) * 10; // 38%..48%
+    return `hsl(${hue} 85% ${light}%)`;
   }
 
-  function setScoreColors(score){
-    const color = scoreToColor(score / 100);
-    scoreBar.style.background = color;
-    if (scorePill) scorePill.style.background = color;
+  function setFinalColors(readiness){
+    const c = scoreToColor(readiness);
+    scoreBar.style.background = c;
+    if (scorePill) scorePill.style.background = c;
   }
 
-  // ---- Main compute ----
+  function setProvisionalColors(){
+    // keep in brand/design yellow while incomplete
+    scoreBar.style.background = "linear-gradient(90deg, #f4b400, #ffd56a)";
+    if (scorePill) scorePill.style.background = "#f4b400";
+  }
+
   function computeScoreAndConstraints() {
     const answered = inputs.filter(sel => sel.value !== "");
     const totalQuestions = inputs.length;
 
-    // Reset UI if nothing answered
+    // If nothing answered, reset UI
     if (answered.length === 0) {
       scoreText.textContent = "—";
       scoreBar.style.width = "0%";
-      setScoreColors(0);
+      setProvisionalColors();
       scoreNote.textContent = "Provisional score will appear once you start answering questions.";
       warnBox.style.display = "none";
       constraintsBox.innerHTML = "";
@@ -639,56 +645,57 @@
     let wSum = 0;
     let wsSum = 0;
 
-    // Aggregate severity by barrier (unique)
+    // Aggregate severity by constraint (no duplicates)
     const constraintAgg = new Map();
 
     for (const sel of answered) {
       const w = getWeight(sel);
-      const s = num(sel.value, 0); // 0..100
+      const s = num(sel.value, 0);
 
       wSum += w;
       wsSum += w * s;
 
       const severity = w * (100 - s);
-
       const label = (getConstraint(sel) || getQuestionText(sel)).trim();
+
       const prev = constraintAgg.get(label);
-      if (!prev) {
-        constraintAgg.set(label, { label, severityTotal: severity });
-      } else {
-        prev.severityTotal += severity;
-      }
+      if (!prev) constraintAgg.set(label, { label, severityTotal: severity });
+      else prev.severityTotal += severity;
     }
 
     const readiness = wSum > 0 ? Math.round(wsSum / wSum) : 0;
-
-    // ----- PROVISIONAL vs FINAL -----
     const isComplete = answered.length === totalQuestions;
 
-    // Always show some number, but clearly labeled as provisional until complete
+    // Always show the numeric score, but clearly label it as provisional until complete
     scoreText.textContent = String(readiness);
-    setScoreColors(readiness);
 
     if (!isComplete) {
-      // progress bar reflects completion progress (not score) to avoid "100/100" confusion
+      // PROVISIONAL MODE:
+      // - bar shows completion progress
+      // - bar color stays yellow (brand), not red/green
       const progressPct = Math.round((answered.length / totalQuestions) * 100);
       scoreBar.style.width = `${progressPct}%`;
+      setProvisionalColors();
 
       scoreNote.textContent =
         `Provisional score (based on ${answered.length} / ${totalQuestions} answers). Final score will appear once all questions are completed.`;
       warnBox.style.display = "block";
 
-      // Hide constraints until complete to avoid misleading “top 5”
+      // Hide constraints until complete to avoid misleading results
       constraintsBox.innerHTML = "";
       return;
     }
 
-    // Complete: show score bar as score and show constraints
+    // FINAL MODE:
+    // - bar shows the score
+    // - bar + pill become red->green based on score
     scoreBar.style.width = `${readiness}%`;
+    setFinalColors(readiness);
+
     scoreNote.textContent = "Final score calculated (all questions answered).";
     warnBox.style.display = "none";
 
-    // ----- Top 5 unique constraints -----
+    // Top 5 unique constraints
     const top5 = Array.from(constraintAgg.values())
       .sort((a, b) => b.severityTotal - a.severityTotal)
       .slice(0, 5);
@@ -696,7 +703,7 @@
     constraintsBox.innerHTML = `
       <div style="border:1px solid #e6e6e6;border-radius:12px;overflow:hidden;background:#fff;">
         <div style="background:#8fd0f0;padding:10px 12px;font-weight:900;">
-          Top 5 Constraints (weighted)
+          Top 5 (Weightec) Constraints
         </div>
         <div style="padding:10px 12px;">
           <table style="width:100%;border-collapse:collapse;">
@@ -718,6 +725,7 @@
             </tbody>
           </table>
           <div style="color:#444;font-size:13px;margin-top:6px;">
+            Severity aggregated per constraint: Σ[weight × (100 − score)] across linked questions.
           </div>
         </div>
       </div>
